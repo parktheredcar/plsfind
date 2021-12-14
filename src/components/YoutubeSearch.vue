@@ -6,7 +6,7 @@ import {wasBackspaceOrDeletePressed, wasEnterPressed} from '../lib/dom-util';
 const minPlaylistLength = ref(100);
 const maxPlaylistLength = ref(200);
 const songTerms = ref(['']);
-const songInputFields = ref([]);
+const songInputFields = ref(Array<HTMLElement>());
 
 const focusInput = (index:number): void  => {
   songInputFields.value[index].focus();
@@ -42,9 +42,13 @@ const addSongTerm = async (newTerm: string = '') => {
 
 const handleEnterPress = (e: KeyboardEvent) => {
   // If already on the last one then create new otherwise focus down
+  if (!(e.target instanceof HTMLInputElement)) {
+    return;
+  }
+  
   const targetIndex = songInputFields.value.indexOf(e.target);
   if (targetIndex === songTerms.value.length - 1) {
-    if(e.target?.value === '') {
+    if(e.target.value === '') {
       doSearch(e.ctrlKey)
     } else {
       addSongTerm();
@@ -55,6 +59,9 @@ const handleEnterPress = (e: KeyboardEvent) => {
 }
 
 const inputKeyDown = (e: KeyboardEvent) => {
+  if (!(e.target instanceof HTMLInputElement)) {
+    return;
+  }
   if (wasEnterPressed(e.code)) {
     handleEnterPress(e)
   } else if (wasBackspaceOrDeletePressed(e.code) && e.target.value === '') {
@@ -72,9 +79,6 @@ const doSearch = (newTab:boolean) : void => {
       }
 }
 
-
-// "playlist by" site:open.spotify.com "looking for me" "paul woolford" 100..200 songs
-// https://www.google.com/search?q=%22playlist+by%22+site%3Aopen.spotify.com+%22looking+for+me%22+%22paul+woolford%22+100..200+songs
 
 
 // inurl:youtube.com/playlist?list= "last updated on" "signum"  "coming on strong" 100..200 videos
@@ -105,7 +109,7 @@ const searchLink = computed(() => {
     <div class="p-2" v-for="(s, idx) in songTerms" :key="idx">
       <label>
         Video
-        <input class="outline outline-offset-2 outline-1" v-model="songTerms[idx]" @keydown="inputKeyDown" :ref="(el) => {if(el) songInputFields[idx] = el }" />
+        <input class="outline outline-offset-2 outline-1" v-model="songTerms[idx]" @keydown="inputKeyDown" :ref="(el) => {if(el instanceof HTMLElement) songInputFields[idx] = el }" />
         <!-- https://heroicons.com/ -->
       </label>        
       <svg v-if="idx === songTerms.length - 1" @click="addClicked" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
