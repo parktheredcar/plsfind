@@ -6,9 +6,14 @@ import {wasBackspaceOrDeletePressed, wasEnterPressed} from '../lib/dom-util';
 const minPlaylistLength = ref(100);
 const maxPlaylistLength = ref(200);
 const songTerms = ref(['']);
-const songInputFields = ref(Array<HTMLElement>());
+// const x: number = 5;
+// const z = HTMLElement[] = [];
 
-const focusInput = (index:number): void  => {
+// const inner: Array<HTMLElement> = [];
+const songInputFields = ref(<Array<HTMLElement>>[]);
+
+const focusInput = async (index:number): Promise<void>  => {
+  await nextTick();
   songInputFields.value[index].focus();
 }
 
@@ -28,14 +33,13 @@ const doRemove = (idx: number) => {
   if (songTerms.value.length === 1) {
     return;
   }
-
+  debugger;
   songTerms.value.splice(idx, 1)
-  focusInput(Math.min(idx+1, songTerms.value.length));
+  focusInput(Math.min(idx+1, songTerms.value.length-1));
 }
 
-const addSongTerm = async (newTerm: string = '') => {
+const addSongTerm = (newTerm: string = '') => {
   songTerms.value.push(newTerm);
-  await nextTick();
   focusInput(songTerms.value.length - 1);
 }
 
@@ -67,6 +71,7 @@ const inputKeyDown = (e: KeyboardEvent) => {
   } else if (wasBackspaceOrDeletePressed(e.code) && e.target.value === '') {
     const targetIndex = songInputFields.value.indexOf(e.target);
     doRemove(targetIndex);
+    e.preventDefault();
   }
 }
 
@@ -102,6 +107,13 @@ const searchLink = computed(() => {
   return 'https://www.google.com/search?q=' + encodedSearchTerm.value;
 });
 
+const getRef = (el: any, idx: number) => {
+  // debugger;
+  if(el instanceof HTMLElement) 
+    songInputFields.value[idx] = el 
+  }
+
+
 </script>
 
 <template>
@@ -109,7 +121,7 @@ const searchLink = computed(() => {
     <div class="p-2" v-for="(s, idx) in songTerms" :key="idx">
       <label>
         Song
-        <input class="outline outline-offset-2 outline-1" v-model="songTerms[idx]" @keydown="inputKeyDown" :ref="(el) => {if(el instanceof HTMLElement) songInputFields[idx] = el }" />
+        <input class="outline outline-offset-2 outline-1" v-model="songTerms[idx]" @keydown="inputKeyDown" :ref="(el) => getRef(el, idx)" />
         <!-- https://heroicons.com/ -->
       </label>        
       <svg v-if="idx === songTerms.length - 1" @click="addClicked" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
